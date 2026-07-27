@@ -1,0 +1,6 @@
+services:
+  app:
+    ports: !override
+      - "127.0.0.1:${PORT:-3000}:3000"
+    volumes: !override
+      - /var/lib/trackmeprivately/data:/data

@@ -32,7 +32,7 @@ For disclosure language and implementation notes, see [Privacy Policy Guidance](
 ### 1. Installation
 
 ```bash
-git clone https://github.com/pinksnafu/trackmeprivately.git
+git clone https://github.com/icarus-online/trackmeprivately.git
 cd trackmeprivately
 npm ci
 ```

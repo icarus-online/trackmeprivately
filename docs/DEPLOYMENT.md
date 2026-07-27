@@ -18,7 +18,7 @@ see the [Docker Deployment Guide](DOCKER.md).
 On the VPS, clone the repository to your preferred application directory:
 
 ```bash
-git clone https://github.com/pinksnafu/trackmeprivately.git /opt/trackmeprivately
+git clone https://github.com/icarus-online/trackmeprivately.git /opt/trackmeprivately
 cd /opt/trackmeprivately
 npm ci
 ```
