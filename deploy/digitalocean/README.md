@@ -60,6 +60,29 @@ journalctl -u trackmeprivately-backup.service --no-pager -n 20
 Backups are not automatically deleted by this configuration. Retention or
 deletion requires a separately reviewed policy.
 
+## Authority and cutover
+
+Deploying and validating this target does not make it authoritative production.
+Production DNS, the existing source service, and its rollback role remain
+unchanged until a separately authorized DNS cutover has completed and public
+validation has passed.
+
+Keep the migration sequence explicit:
+
+1. Record the exact reviewed source commit.
+2. Deploy this independent analytics target and validate login, tracker
+   collection, origin controls, persistence, and backups.
+3. Record the rollback procedure privately, then authenticate the DNS workflow.
+4. Change only the approved analytics DNS record; coordinate any website record
+   change through the website repository's operations documentation.
+5. Verify public TLS, passkey login, tracker collection, and persistence, then
+   retain the source service through the agreed soak period.
+6. Confirm that no dependencies remain before any shutdown-only decommission,
+   then rerun production checks.
+
+Deleting backups, snapshots, volumes, or account records is out of scope for
+this migration and requires separate approval.
+
 ## Stateful migration gate
 
 1. Stop writes on the source tracker long enough to take a consistent SQLite
