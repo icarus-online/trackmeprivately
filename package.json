@@ -18,7 +18,7 @@
     "@types/ua-parser-js": "^0.7.39",
     "jose": "^6.2.3",
     "lucide-react": "^1.23.0",
-    "next": "16.2.10",
+    "next": "16.2.11",
     "prisma": "^5.22.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -32,13 +32,14 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.2.11",
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "vitest": "^4.1.10"
   },
   "overrides": {
-    "postcss": "^8.5.10"
+    "postcss": "8.5.23",
+    "sharp": "0.35.3"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\\module\\:\\CommonJS\\} prisma/seed.ts"
