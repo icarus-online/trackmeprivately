@@ -32,11 +32,16 @@ SESSION_COOKIE_SAME_SITE=strict
 Build and start the loopback-only service:
 
 ```bash
+install -d -o 1001 -g 1001 -m 0700 /var/lib/trackmeprivately/data
 docker compose \
   -f docker-compose.yml \
   -f deploy/digitalocean/docker-compose.production.yml \
   up -d --build
 ```
+
+The ownership matches the non-root user in the production image. Verify the
+directory remains owned by UID/GID `1001` and mode `0700` before restoring a
+database or restarting the service.
 
 Install the Caddy and backup configuration:
 

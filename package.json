@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "validate:production-compose": "node deploy/digitalocean/validate-compose.mjs",
     "test:watch": "vitest",
     "prune": "ts-node --compiler-options {\"module\":\"CommonJS\"} scripts/prune.ts"
   },
