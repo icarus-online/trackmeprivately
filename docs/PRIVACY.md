@@ -33,7 +33,9 @@ The admin dashboard uses secure HTTP-only cookies for passkey login sessions. Th
 
 ## Origin Verification
 
-`/api/collect` verifies request `Origin` or `Referer` headers against the registered website domain when a source header is present. This helps prevent unrelated sites from submitting events with another site's tracking ID. Localhost is allowed for development, and `DISABLE_ORIGIN_VERIFICATION=true` can disable the check for testing.
+`/api/collect` verifies request `Origin` or `Referer` headers against the registered website's origin when a source header is present. Scheme and port must match; bare registered domains default to HTTPS, and the apex and `www` forms are accepted. Malformed source headers are rejected. Requests without either source header remain supported for privacy clients; source headers are not an authentication mechanism.
+
+Browser preflights permit only registered website origins, POST, and Content-Type. Successful requests return the specific allowed origin and `Vary: Origin`, without wildcard CORS or credentials. Event POSTs still check the selected website, even if a different registered website allowed the preflight. Localhost and `DISABLE_ORIGIN_VERIFICATION=true` are development-only exceptions and have no effect in production.
 
 ## Suggested Privacy Policy Text
 
