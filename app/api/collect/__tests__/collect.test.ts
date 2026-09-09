@@ -117,6 +117,8 @@ describe('Collector Ingest API Endpoint', () => {
       const body = await res.json();
       expect(body.success).toBe(true);
       expect(prisma.event.create).toHaveBeenCalled();
+      expect(res.headers.get('Access-Control-Allow-Origin')).toBe('https://mysite.com');
+      expect(res.headers.get('Vary')).toBe('Origin');
     });
 
     test('should return 200 when Referer header matches website domain exactly', async () => {

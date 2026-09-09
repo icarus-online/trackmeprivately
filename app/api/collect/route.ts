@@ -3,6 +3,40 @@ import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import { UAParser } from 'ua-parser-js';
 
+function parseOrigin(value: string, isOriginHeader = false): string | null {
+  try {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
+    if (isOriginHeader && value !== url.origin) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function matchesWebsite(origin: string, domain: string): boolean {
+  const expected = parseOrigin(domain.includes('://') ? domain : `https://${domain}`);
+  if (!expected) return false;
+  const url = new URL(expected);
+  const alias = new URL(expected);
+  alias.hostname = url.hostname.startsWith('www.')
+    ? url.hostname.slice(4) : `www.${url.hostname}`;
+  return origin === expected || origin === alias.origin;
+}
+
+function developmentBypass(origin: string): boolean {
+  if (process.env.NODE_ENV === 'production') return false;
+  return process.env.DISABLE_ORIGIN_VERIFICATION === 'true'
+    || ['localhost', '127.0.0.1'].includes(new URL(origin).hostname);
+}
+
+function corsHeaders(origin?: string): Record<string, string> {
+  return {
+    'Vary': 'Origin',
+    ...(origin ? { 'Access-Control-Allow-Origin': origin } : {}),
+  };
+}
+
 function generateSessionId(ip: string, userAgent: string, websiteId: string) {
   const dateSalt = new Date().toISOString().split('T')[0];
   const hash = crypto.createHash('sha256');
@@ -34,26 +68,13 @@ export async function POST(req: Request) {
     // Security: Request Origin Verification (Anti-Spoofing)
     const origin = req.headers.get('origin');
     const referer = req.headers.get('referer');
-    const requestSource = origin || referer;
-
-    if (requestSource && process.env.DISABLE_ORIGIN_VERIFICATION !== 'true') {
-      try {
-        const sourceUrl = new URL(requestSource);
-        const actualHost = sourceUrl.hostname.replace(/^www\./, '');
-        const expectedHost = dbWebsite.domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
-
-        // Allow localhost for local development checks
-        if (actualHost !== expectedHost && actualHost !== 'localhost' && actualHost !== '127.0.0.1') {
-          return new NextResponse(JSON.stringify({ error: 'Origin not allowed' }), {
-            status: 403,
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*',
-            }
-          });
-        }
-      } catch {
-        // Handle invalid URL parse gracefully
+    const requestSource = origin ?? referer;
+    if (requestSource !== null) {
+      const sourceOrigin = parseOrigin(requestSource, origin !== null);
+      if (!sourceOrigin || (!matchesWebsite(sourceOrigin, dbWebsite.domain) && !developmentBypass(sourceOrigin))) {
+        return NextResponse.json({ error: 'Origin not allowed' }, {
+          status: 403, headers: corsHeaders(),
+        });
       }
     }
 
@@ -87,7 +108,7 @@ export async function POST(req: Request) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        ...corsHeaders(origin ?? undefined),
       }
     });
   } catch (error) {
@@ -96,13 +117,30 @@ export async function POST(req: Request) {
   }
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+export async function OPTIONS(req: Request) {
+  const origin = parseOrigin(req.headers.get('origin') ?? '', true);
+  const method = req.headers.get('access-control-request-method');
+  const headers = (req.headers.get('access-control-request-headers') ?? '')
+    .split(',').map(value => value.trim().toLowerCase()).filter(Boolean);
+  const vary = 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers';
+  if (!origin || method !== 'POST' || headers.some(header => header !== 'content-type')) {
+    return new NextResponse(null, { status: 403, headers: { Vary: vary } });
+  }
+  try {
+    const websites = await prisma.website.findMany({ select: { domain: true } });
+    if (!developmentBypass(origin) && !websites.some(site => matchesWebsite(origin, site.domain))) {
+      return new NextResponse(null, { status: 403, headers: { Vary: vary } });
+    }
+    return new NextResponse(null, {
+      status: 204,
+      headers: {
+        ...corsHeaders(origin),
+        Vary: vary,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  } catch {
+    return new NextResponse(null, { status: 503, headers: { Vary: vary } });
+  }
 }
