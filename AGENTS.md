@@ -66,7 +66,7 @@ Instead of passwords or email servers, the admin dashboard is locked down via bi
 ## 📡 Key API Endpoints
 
 ### 1. Ingestion: `POST /api/collect`
-*   Accessible from any origin (CORS allowed).
+*   Browser CORS permits registered website origins; event POSTs verify the selected website's origin. Development bypasses are disabled in production.
 *   Expects: `{ event, url, referrer, width, website }`.
 *   Parses incoming user-agent parameters, maps screen resolutions, creates the daily session hash, and inserts the telemetry record asynchronously.
 

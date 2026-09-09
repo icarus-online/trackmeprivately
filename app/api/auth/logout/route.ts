@@ -6,7 +6,12 @@ export async function POST() {
   return NextResponse.json({ success: true });
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   await clearSessionCookie();
-  return NextResponse.redirect(new URL('/login', req.url));
+  // A relative Location keeps navigation on the browser's public origin,
+  // without reflecting the internal upstream URL or trusting proxy headers.
+  return new NextResponse(null, {
+    status: 307,
+    headers: { Location: '/login', 'Cache-Control': 'no-store' },
+  });
 }

@@ -17,26 +17,27 @@ describe('Auth Utilities', () => {
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     process.env = originalEnv;
     vi.restoreAllMocks();
   });
 
   describe('getSecretKey', () => {
     test('should throw error in production if NEXTAUTH_SECRET is not set', () => {
-      process.env.NODE_ENV = 'production';
+      vi.stubEnv('NODE_ENV', 'production');
       delete process.env.NEXTAUTH_SECRET;
       expect(() => getSecretKey()).toThrowError(/NEXTAUTH_SECRET/);
     });
 
     test('should return key in production if NEXTAUTH_SECRET is set', () => {
-      process.env.NODE_ENV = 'production';
+      vi.stubEnv('NODE_ENV', 'production');
       process.env.NEXTAUTH_SECRET = 'my-secret-key';
       const key = getSecretKey();
       expect(key).toBeInstanceOf(Uint8Array);
     });
 
     test('should return default fallback key in development if NEXTAUTH_SECRET is not set', () => {
-      process.env.NODE_ENV = 'development';
+      vi.stubEnv('NODE_ENV', 'development');
       delete process.env.NEXTAUTH_SECRET;
       const key = getSecretKey();
       expect(key).toBeInstanceOf(Uint8Array);
@@ -112,15 +113,15 @@ describe('Auth Utilities', () => {
 
   describe('getSessionCookieOptions', () => {
     test('should set secure flag in production or when SameSite is none', () => {
-      process.env.NODE_ENV = 'production';
+      vi.stubEnv('NODE_ENV', 'production');
       delete process.env.SESSION_COOKIE_SAME_SITE;
       expect(getSessionCookieOptions().secure).toBe(true);
 
-      process.env.NODE_ENV = 'development';
+      vi.stubEnv('NODE_ENV', 'development');
       process.env.SESSION_COOKIE_SAME_SITE = 'none';
       expect(getSessionCookieOptions().secure).toBe(true);
 
-      process.env.NODE_ENV = 'development';
+      vi.stubEnv('NODE_ENV', 'development');
       delete process.env.SESSION_COOKIE_SAME_SITE;
       expect(getSessionCookieOptions().secure).toBe(false);
     });

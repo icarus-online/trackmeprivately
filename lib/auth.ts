@@ -105,7 +105,11 @@ export async function setSessionCookie(payload: SessionPayload) {
 
 export async function clearSessionCookie() {
   const cookieStore = await cookies();
-  cookieStore.delete('session_token');
+  cookieStore.set('session_token', '', {
+    ...getSessionCookieOptions(),
+    maxAge: 0,
+    expires: new Date(0),
+  });
 }
 
 export async function setChallengeCookie(challenge: string, username?: string) {
