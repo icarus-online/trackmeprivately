@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Track Me Privately SQLite backup daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=30m
+Unit=trackmeprivately-backup.service
+
+[Install]
+WantedBy=timers.target

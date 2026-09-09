@@ -18,7 +18,7 @@ graph TD
 ```
 
 ### 1. Planning & Scope
-*   Review the **[GitHub Projects Kanban](https://github.com/users/pinksnafu/projects/1)**.
+*   Review the organization project board and linked repository issues.
 *   Select 1-3 issues to address in the upcoming milestone (e.g., *Sprint 1: Core Dashboard & Origin Security*).
 
 ### 2. Local Checklist (`task.md`)

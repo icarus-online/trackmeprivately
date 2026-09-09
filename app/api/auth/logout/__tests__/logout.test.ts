@@ -50,7 +50,7 @@ describe('logout contracts and cookie scope', () => {
       httpOnly: true, secure: true, sameSite: 'strict',
     });
     expect(expired.domain).toBe(created.domain);
-    expect(expired.expires!.getTime()).toBeLessThanOrEqual(Date.now());
+    expect(new Date(expired.expires!).getTime()).toBeLessThanOrEqual(Date.now());
     const serialized = cookieResponse.headers.get('set-cookie')!;
     expect(serialized).toContain('Path=/');
     expect(serialized).toContain('Max-Age=0');
