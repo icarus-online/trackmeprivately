@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import Chart from '@/components/Chart';
 import WebsiteSwitcher from '@/components/WebsiteSwitcher';
-import { Activity, Users, Monitor, Globe, Plus, LogOut, ArrowRight, ShieldCheck } from 'lucide-react';
+import WebsiteSettings from '@/components/WebsiteSettings';
+import CreateWebsiteForm from '@/components/CreateWebsiteForm';
+import { Activity, Users, Monitor, Globe, Plus, LogOut, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import {
   RangeKey,
@@ -16,6 +17,7 @@ import {
   startOfUtcHour,
   startOfUtcDay,
 } from '@/lib/range';
+import { buildDashboardHref } from '@/lib/websites';
 import './globals.css';
 
 export const revalidate = 0; // Dynamic server rendering
@@ -25,33 +27,8 @@ type DashboardSearchParams = {
   range?: string | string[];
 };
 
-async function addWebsite(formData: FormData) {
-  'use server';
-  const name = formData.get('name') as string;
-  const domain = formData.get('domain') as string;
-
-  if (name && domain) {
-    try {
-      await prisma.website.create({
-        data: {
-          name,
-          domain: domain.toLowerCase().trim(),
-        },
-      });
-    } catch (err) {
-      console.error('Failed to create website:', err);
-    }
-    redirect('/');
-  }
-}
-
 function buildRangeHref(websiteId: string | undefined, range: RangeKey) {
-  const params = new URLSearchParams();
-  if (websiteId) {
-    params.set('websiteId', websiteId);
-  }
-  params.set('range', range);
-  return `/?${params.toString()}`;
+  return buildDashboardHref(websiteId, range);
 }
 
 export default async function Dashboard({
@@ -330,22 +307,19 @@ export default async function Dashboard({
             </div>
           </div>
 
-          {/* Integration Guide */}
+          <WebsiteSettings
+            website={activeWebsite}
+            currentDomain={currentDomain}
+            activeRange={activeRange}
+          />
+
+          {/* Custom event example */}
           <div className="card" style={{ marginTop: '2rem' }}>
-            <h2 className="chart-title">Integration Code</h2>
+            <h2 className="chart-title">Custom Event Example</h2>
             <p className="subtitle">
-              Add this script to your site&apos;s header to start tracking visits and custom triggers.
+              Trigger custom analytics events from buttons, forms, or other calls to action.
             </p>
-            <div className="snippet-box">
-              {`<script 
-  src="${currentDomain}/tracker.js" 
-  data-endpoint="${currentDomain}/api/collect"
-  data-website-id="${activeWebsite.id}"
-  async
-></script>`}
-            </div>
             <div style={{ marginTop: '1.25rem' }}>
-              <p className="subtitle" style={{ fontWeight: 600 }}>Track Custom CTAs / Buttons:</p>
               <pre
                 style={{
                   background: 'rgba(0,0,0,0.3)',
@@ -402,70 +376,7 @@ document.getElementById('cta-btn').addEventListener('click', () => {
           <Plus size={20} />
           Register New Domain
         </h3>
-        <form
-          action={addWebsite}
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            alignItems: 'flex-end',
-            marginTop: '1rem',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Site Name</label>
-            <input
-              type="text"
-              name="name"
-              required
-              placeholder="e.g. My Website"
-              style={{
-                background: 'rgba(0,0,0,0.3)',
-                border: '1px solid var(--border-color)',
-                padding: '0.6rem 0.8rem',
-                borderRadius: '8px',
-                color: '#fff',
-                outline: 'none',
-              }}
-            />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Domain Name</label>
-            <input
-              type="text"
-              name="domain"
-              required
-              placeholder="e.g. example.com"
-              style={{
-                background: 'rgba(0,0,0,0.3)',
-                border: '1px solid var(--border-color)',
-                padding: '0.6rem 0.8rem',
-                borderRadius: '8px',
-                color: '#fff',
-                outline: 'none',
-              }}
-            />
-          </div>
-          <button
-            type="submit"
-            style={{
-              background: 'var(--accent-color)',
-              color: '#fff',
-              border: 'none',
-              padding: '0.6rem 1.2rem',
-              borderRadius: '8px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              height: '38px',
-            }}
-          >
-            Create
-            <ArrowRight size={16} />
-          </button>
-        </form>
+        <CreateWebsiteForm activeRange={activeRange} />
       </div>
     </div>
   );
