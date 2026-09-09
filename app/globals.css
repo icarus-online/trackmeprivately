@@ -273,6 +273,46 @@ body {
   color: #fff;
 }
 
+.button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.form-message {
+  margin: 0;
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.form-error {
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(127, 29, 29, 0.25);
+  color: #fecaca;
+}
+
+.create-website-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.create-website-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.create-website-button {
+  gap: 0.5rem;
+}
+
+.create-website-message {
+  flex-basis: 100%;
+}
+
 .danger-card {
   border-color: rgba(220, 38, 38, 0.35);
 }

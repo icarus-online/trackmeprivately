@@ -2,10 +2,10 @@ import { prisma } from '@/lib/prisma';
 import Chart from '@/components/Chart';
 import WebsiteSwitcher from '@/components/WebsiteSwitcher';
 import WebsiteSettings from '@/components/WebsiteSettings';
-import { Activity, Users, Monitor, Globe, Plus, LogOut, ArrowRight, ShieldCheck } from 'lucide-react';
+import CreateWebsiteForm from '@/components/CreateWebsiteForm';
+import { Activity, Users, Monitor, Globe, Plus, LogOut, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { headers } from 'next/headers';
-import { createWebsite } from '@/app/actions';
 import {
   RangeKey,
   RANGE_OPTIONS,
@@ -376,71 +376,7 @@ document.getElementById('cta-btn').addEventListener('click', () => {
           <Plus size={20} />
           Register New Domain
         </h3>
-        <form
-          action={createWebsite}
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            alignItems: 'flex-end',
-            marginTop: '1rem',
-          }}
-        >
-          <input type="hidden" name="range" value={activeRange} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Site Name</label>
-            <input
-              type="text"
-              name="name"
-              required
-              placeholder="e.g. My Website"
-              style={{
-                background: 'rgba(0,0,0,0.3)',
-                border: '1px solid var(--border-color)',
-                padding: '0.6rem 0.8rem',
-                borderRadius: '8px',
-                color: '#fff',
-                outline: 'none',
-              }}
-            />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Domain Name</label>
-            <input
-              type="text"
-              name="domain"
-              required
-              placeholder="e.g. example.com"
-              style={{
-                background: 'rgba(0,0,0,0.3)',
-                border: '1px solid var(--border-color)',
-                padding: '0.6rem 0.8rem',
-                borderRadius: '8px',
-                color: '#fff',
-                outline: 'none',
-              }}
-            />
-          </div>
-          <button
-            type="submit"
-            style={{
-              background: 'var(--accent-color)',
-              color: '#fff',
-              border: 'none',
-              padding: '0.6rem 1.2rem',
-              borderRadius: '8px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              height: '38px',
-            }}
-          >
-            Create
-            <ArrowRight size={16} />
-          </button>
-        </form>
+        <CreateWebsiteForm activeRange={activeRange} />
       </div>
     </div>
   );

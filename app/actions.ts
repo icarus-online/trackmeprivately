@@ -10,6 +10,8 @@ import {
   normalizeWebsiteDomain,
   normalizeWebsiteId,
   normalizeWebsiteName,
+  websiteMutationError,
+  type WebsiteActionState,
   DELETE_WEBSITE_CONFIRMATION,
 } from '@/lib/websites';
 
@@ -21,7 +23,10 @@ async function requireAdminSession() {
   return session;
 }
 
-export async function createWebsite(formData: FormData) {
+export async function createWebsite(
+  _previousState: WebsiteActionState,
+  formData: FormData,
+): Promise<WebsiteActionState> {
   await requireAdminSession();
 
   const name = normalizeWebsiteName(formData.get('name'));
@@ -29,7 +34,7 @@ export async function createWebsite(formData: FormData) {
   const range = normalizeDashboardRange(formData.get('range'));
 
   if (!name || !domain) {
-    redirect(buildDashboardHref(null, range));
+    return { message: 'Enter a valid site name and domain.' };
   }
 
   let websiteId: string;
@@ -41,14 +46,17 @@ export async function createWebsite(formData: FormData) {
     websiteId = website.id;
   } catch (err) {
     console.error('Failed to create website:', err);
-    redirect(buildDashboardHref(null, range));
+    return { message: websiteMutationError(err, 'create') };
   }
 
   revalidatePath('/');
   redirect(buildDashboardHref(websiteId, range));
 }
 
-export async function updateWebsite(formData: FormData) {
+export async function updateWebsite(
+  _previousState: WebsiteActionState,
+  formData: FormData,
+): Promise<WebsiteActionState> {
   await requireAdminSession();
 
   const websiteId = normalizeWebsiteId(formData.get('websiteId'));
@@ -57,7 +65,9 @@ export async function updateWebsite(formData: FormData) {
   const range = normalizeDashboardRange(formData.get('range'));
 
   if (!websiteId || !name || !domain) {
-    redirect(buildDashboardHref(websiteId, range));
+    return { message: websiteId
+      ? 'Enter a valid site name and domain.'
+      : 'The website selection is missing. Refresh the dashboard and try again.' };
   }
 
   try {
@@ -67,34 +77,41 @@ export async function updateWebsite(formData: FormData) {
     });
   } catch (err) {
     console.error('Failed to update website:', err);
+    return { message: websiteMutationError(err, 'update') };
   }
 
   revalidatePath('/');
   redirect(buildDashboardHref(websiteId, range));
 }
 
-export async function deleteWebsite(formData: FormData) {
+export async function deleteWebsite(
+  _previousState: WebsiteActionState,
+  formData: FormData,
+): Promise<WebsiteActionState> {
   await requireAdminSession();
 
   const websiteId = normalizeWebsiteId(formData.get('websiteId'));
   const confirmation = formData.get('confirmation');
   const range = normalizeDashboardRange(formData.get('range'));
 
-  if (!websiteId || confirmation !== DELETE_WEBSITE_CONFIRMATION) {
-    redirect(buildDashboardHref(websiteId, range));
+  if (!websiteId) {
+    return { message: 'The website selection is missing. Refresh the dashboard and try again.' };
+  }
+  if (confirmation !== DELETE_WEBSITE_CONFIRMATION) {
+    return { message: `Type ${DELETE_WEBSITE_CONFIRMATION} exactly to confirm deletion.` };
   }
 
-  const nextWebsite = await prisma.website.findFirst({
-    where: { id: { not: websiteId } },
-    orderBy: { name: 'asc' },
-    select: { id: true },
-  });
-
+  let nextWebsite: { id: string } | null;
   try {
+    nextWebsite = await prisma.website.findFirst({
+      where: { id: { not: websiteId } },
+      orderBy: { name: 'asc' },
+      select: { id: true },
+    });
     await prisma.website.delete({ where: { id: websiteId } });
   } catch (err) {
     console.error('Failed to delete website:', err);
-    redirect(buildDashboardHref(websiteId, range));
+    return { message: websiteMutationError(err, 'delete') };
   }
 
   revalidatePath('/');

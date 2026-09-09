@@ -5,6 +5,7 @@ import {
   normalizeDashboardRange,
   normalizeWebsiteDomain,
   normalizeWebsiteName,
+  websiteMutationError,
 } from '../websites';
 
 describe('website helpers', () => {
@@ -45,5 +46,14 @@ describe('website helpers', () => {
     expect(buildTrackingSnippet('https://analytics.example.com', 'site-1')).toContain(
       'data-endpoint="https://analytics.example.com/api/collect"'
     );
+  });
+
+  test('maps expected database failures to safe form feedback', () => {
+    expect(websiteMutationError({ code: 'P2002', detail: 'private database detail' }, 'create'))
+      .toBe('That domain is already registered.');
+    expect(websiteMutationError({ code: 'P2025' }, 'update'))
+      .toBe('That website no longer exists. Refresh the dashboard and try again.');
+    expect(websiteMutationError(new Error('private database detail'), 'delete'))
+      .toBe('We could not delete the website. Try again.');
   });
 });

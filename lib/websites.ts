@@ -2,6 +2,27 @@ import { RangeKey, normalizeRange } from './range';
 
 export const DELETE_WEBSITE_CONFIRMATION = 'DELETE';
 
+export type WebsiteActionState = {
+  message: string;
+};
+
+export const INITIAL_WEBSITE_ACTION_STATE: WebsiteActionState = { message: '' };
+
+export function websiteMutationError(error: unknown, operation: 'create' | 'update' | 'delete') {
+  const code = typeof error === 'object' && error !== null && 'code' in error
+    ? (error as { code?: unknown }).code
+    : undefined;
+
+  if (code === 'P2002') {
+    return 'That domain is already registered.';
+  }
+  if (code === 'P2025') {
+    return 'That website no longer exists. Refresh the dashboard and try again.';
+  }
+
+  return `We could not ${operation} the website. Try again.`;
+}
+
 export function normalizeWebsiteName(value: FormDataEntryValue | null) {
   if (typeof value !== 'string') {
     return null;

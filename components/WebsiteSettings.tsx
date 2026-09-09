@@ -1,7 +1,14 @@
+'use client';
+
 import { Pencil, Trash2, Code2 } from 'lucide-react';
+import { useActionState } from 'react';
 import { deleteWebsite, updateWebsite } from '@/app/actions';
-import { DELETE_WEBSITE_CONFIRMATION, buildTrackingSnippet } from '@/lib/websites';
-import { RangeKey } from '@/lib/range';
+import {
+  DELETE_WEBSITE_CONFIRMATION,
+  INITIAL_WEBSITE_ACTION_STATE,
+  buildTrackingSnippet,
+} from '@/lib/websites';
+import type { RangeKey } from '@/lib/range';
 
 type WebsiteSettingsProps = {
   website: {
@@ -19,6 +26,14 @@ export default function WebsiteSettings({
   activeRange,
 }: WebsiteSettingsProps) {
   const snippet = buildTrackingSnippet(currentDomain, website.id);
+  const [updateState, updateAction, updatePending] = useActionState(
+    updateWebsite,
+    INITIAL_WEBSITE_ACTION_STATE,
+  );
+  const [deleteState, deleteAction, deletePending] = useActionState(
+    deleteWebsite,
+    INITIAL_WEBSITE_ACTION_STATE,
+  );
 
   return (
     <div className="settings-grid">
@@ -27,7 +42,7 @@ export default function WebsiteSettings({
           <Pencil size={20} />
           Website Settings
         </h2>
-        <form action={updateWebsite} className="stacked-form">
+        <form action={updateAction} className="stacked-form">
           <input type="hidden" name="websiteId" value={website.id} />
           <input type="hidden" name="range" value={activeRange} />
           <label className="field">
@@ -38,8 +53,13 @@ export default function WebsiteSettings({
             <span>Domain</span>
             <input className="text-input" type="text" name="domain" defaultValue={website.domain} required />
           </label>
-          <button type="submit" className="button button-primary">
-            Save Changes
+          {updateState.message && (
+            <p className="form-message form-error" role="alert" aria-live="polite">
+              {updateState.message}
+            </p>
+          )}
+          <button type="submit" className="button button-primary" disabled={updatePending}>
+            {updatePending ? 'Saving…' : 'Save Changes'}
           </button>
         </form>
       </section>
@@ -63,7 +83,7 @@ export default function WebsiteSettings({
         <p className="subtitle">
           Deletes this website and all associated analytics events.
         </p>
-        <form action={deleteWebsite} className="stacked-form">
+        <form action={deleteAction} className="stacked-form">
           <input type="hidden" name="websiteId" value={website.id} />
           <input type="hidden" name="range" value={activeRange} />
           <label className="field">
@@ -77,8 +97,13 @@ export default function WebsiteSettings({
               autoComplete="off"
             />
           </label>
-          <button type="submit" className="button button-danger">
-            Delete Website
+          {deleteState.message && (
+            <p className="form-message form-error" role="alert" aria-live="polite">
+              {deleteState.message}
+            </p>
+          )}
+          <button type="submit" className="button button-danger" disabled={deletePending}>
+            {deletePending ? 'Deleting…' : 'Delete Website'}
           </button>
         </form>
       </section>
